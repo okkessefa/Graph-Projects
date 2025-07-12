@@ -1,0 +1,11 @@
+# Ignore compiled binaries and intermediate files
+*.exe
+*.out
+*.o
+
+# macOS metadata files
+.DS_Store
+
+# VS Code and IDE settings
+.vscode/
+*.log
