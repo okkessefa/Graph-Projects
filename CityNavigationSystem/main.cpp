@@ -89,16 +89,20 @@ public:
     // -------------------------------------------
     // - Loop through graph and print neighbors of each city
     void DisplayRoadMap(){
-    std::cout<<"<----------Road Map Connection---------->"<<std::endl;
-    std::cout<<"#########################################"<<std::endl;
-    for(const auto& city : cityList){
-        std::cout << city << " --> ";
-        for(const Node& neighbor : graph[city]){
-            std::cout << "(" << neighbor.data << ", " << neighbor.weight << " km) ";
-        }
-        std::cout << "\n"; // Add newline per city
+    std::cout<<"<-------------------Road Map Connection-------------------->"<<std::endl;
+    std::cout<<"############################################################"<<std::endl;
+    std::cout<<"#       Tekirdağ ──  Edirne                                #"<<std::endl;
+    std::cout<<"#          |           |                                   #"<<std::endl;
+    std::cout<<"#    Çanakkale ── Istanbul ── Ankara ── Erzurum            #"<<std::endl;
+    std::cout<<"#                      |        |         |                #"<<std::endl;
+    std::cout<<"#                    Bursa   Eskişehir   Samsun            #"<<std::endl;
+    std::cout<<"#                      |        |                          #"<<std::endl;
+    std::cout<<"#                   Izmir ─── Konya ─── Mersin ─── Hatay   #"<<std::endl;
+    std::cout<<"#                               |                    |     #"<<std::endl;
+    std::cout<<"#                             Adana              Gaziantep #"<<std::endl;
+    std::cout<<"############################################################"<<std::endl;
     }
-}
+
 
 
     // -------------------------------------------
