@@ -40,23 +40,28 @@ Tekirdağ ──70── Edirne
 
 //All futures can be used as class attributes
 struct Node {
-    std::string data;
+    std::string cityName;
     int weight;
     Node* next;
-    Node(std::string val, int weight) : data(val), weight(weight), next(nullptr) {}
+    Node(const std::string& val, int weight) : cityName(val), weight(weight), next(nullptr) {}
+    // CityNode(std::string data, int weight, Node* next)
+    // {
+    //     this->data = data;
+    //     this->age = age;
+    //     this->gpa = gpa;
+    // }
 };
-
 class CityNavigation
-    {
+{
 private:
     // -------------------------------------------
     // 🔧 1. Initialization and Global Structures
     // -------------------------------------------
-    // - List of cities
-    std::vector<std::string> cityList;
     // - Adjacency list (Graph List)
-    std::unordered_map<std::string, std::vector<Node>> graph;
+    std::unordered_map<std::string, Node*> adjacencyList;
+    // std::unordered_map<std::string, std::vector<CityNode>> graph;
 public:
+    CityNavigation() {}
     // -------------------------------------------
     // 🏗️ 2. Add Cities (No Coordinates Needed)
     // -------------------------------------------
@@ -65,23 +70,41 @@ public:
     // - Initialize its adjacency list entry
     void AddCity(const std::string& city)
     {
-        if(graph.find(city) == graph.end()){
-            cityList.push_back(city);
+        if(adjacencyList.find(city) == adjacencyList.end()){
+            adjacencyList[city] = nullptr;
         }
-        graph[city] = {};
     }
-
+    
+    
     // -------------------------------------------
     // 🔗 3. Add Roads Diestance (Graph Edges)
     // -------------------------------------------
     // - Input two city names and diestance
     // - Add bidirectional edge in the adjacency list:
-    void EstablishRoad(const std::string from , const std::string to , int distance, bool  bidirectional = true)
+    void InsertEdge(const std::string& from, const std::string& to, int distance) 
     {
-        graph[from].emplace_back(to , distance);
-        if(bidirectional){
-            graph[to].emplace_back(from, distance);
+        Node* newNode = new Node(to, distance);
+        if(adjacencyList[from] == nullptr)
+        {
+            adjacencyList[from] = newNode;
+        } 
+        else
+        {
+            Node* current = adjacencyList[from];
+            while(current->next != nullptr)
+            {
+                current = current->next; 
+            }
+            current->next = newNode;
         }
+
+    }
+    void AddBidirectionalRoad(const std::string& city1 , const std::string& city2 , int distance)
+    {
+        AddCity(city1);
+        AddCity(city2);
+        InsertEdge(city1, city2, distance);
+        InsertEdge(city2, city1, distance);
     }
 
     // -------------------------------------------
@@ -102,9 +125,60 @@ public:
     std::cout<<"#                             Adana              Gaziantep #"<<std::endl;
     std::cout<<"############################################################"<<std::endl;
     }
+      // ✅ Display the full graph as an adjacency list
+    void DisplayGraph() const {
+        for (const auto& pair : adjacencyList) {
+            std::cout << pair.first << " -> ";
+            Node* current = pair.second;
+            while (current != nullptr) {
+                std::cout << "(" << current->cityName << ", " << current->weight << " km) ";
+                current = current->next;
+            }
+            std::cout << "\n";
+        }
+    }
 
 
+    
+    // -------------------------------------------
+    // 🧭 6. DFS Traversal
+    // -------------------------------------------
+    // - Ask for source and destination city
+    // - Use recursive DFS
+    // - Track visited nodes
+    // - If path exists, print using arrows (→)
+    
+    // -------------------------------------------
+    // 🛣️ 7. BFS Traversal
+    // -------------------------------------------
+    // - Ask for source and destination city
+    // - Use queue, visited set, and parent map
+    // - Reconstruct path from destination to source
+    // - Print path with arrows (→)
+    
+    // -------------------------------------------
+    // 🛑 8. Exit Program
+    // -------------------------------------------
+    // - Exit loop on user command
+    // - Optional: print goodbye message
+    
+    ~CityNavigation() {
+        for (auto& [city, head] : adjacencyList) {
+            Node* current = head;
+            while (current != nullptr) {
+                Node* temp = current;
+                current = current->next;
+                delete temp;
+            }
+        }
+    }
 
+};
+
+
+int main() {
+    // TODO: Pre-fill sample cities and roads if desired
+    // TODO: Start the user interaction menu loop
     // -------------------------------------------
     // 🎛️ 5. User Interaction Menu
     // -------------------------------------------
@@ -115,45 +189,35 @@ public:
     //     4. Find path (DFS)
     //     5. Find path (BFS)
     //     6. Exit
-
-    // -------------------------------------------
-    // 🧭 6. DFS Traversal
-    // -------------------------------------------
-    // - Ask for source and destination city
-    // - Use recursive DFS
-    // - Track visited nodes
-    // - If path exists, print using arrows (→)
-
-    // -------------------------------------------
-    // 🛣️ 7. BFS Traversal
-    // -------------------------------------------
-    // - Ask for source and destination city
-    // - Use queue, visited set, and parent map
-    // - Reconstruct path from destination to source
-    // - Print path with arrows (→)
-
-    // -------------------------------------------
-    // 🛑 8. Exit Program
-    // -------------------------------------------
-    // - Exit loop on user command
-    // - Optional: print goodbye message
-};
-
-int main() {
-    // TODO: Pre-fill sample cities and roads if desired
-    // TODO: Start the user interaction menu loop
+    
+    
     CityNavigation g;
-
-    g.AddCity("Istanbul");
-    g.AddCity("Ankara");
-    g.AddCity("Izmir");
-
-    // Add connections
-    g.EstablishRoad("Istanbul", "Ankara", 450);
-    g.EstablishRoad("Istanbul", "Izmir", 480);
-    g.EstablishRoad("Ankara", "Izmir", 520);
-
-    // Display
+    
+    g.AddBidirectionalRoad("Tekirdag", "Edirne", 70);
+    g.AddBidirectionalRoad("Tekirdag", "Canakkale", 120);
+    g.AddBidirectionalRoad("Canakkale", "Istanbul", 320);
+    g.AddBidirectionalRoad("Istanbul", "Ankara", 450);
+    g.AddBidirectionalRoad("Istanbul", "Bursa", 150);
+    g.AddBidirectionalRoad("Ankara", "Erzurum", 880);
+    g.AddBidirectionalRoad("Ankara", "Eskisehir", 235);
+    g.AddBidirectionalRoad("Erzurum", "Samsun", 420);
+    g.AddBidirectionalRoad("Bursa", "Eskisehir", 330);
+    g.AddBidirectionalRoad("Bursa", "Izmir", 330);
+    g.AddBidirectionalRoad("Izmir", "Konya", 340);
+    g.AddBidirectionalRoad("Konya", "Mersin", 340);
+    g.AddBidirectionalRoad("Mersin", "Hatay", 200);
+    g.AddBidirectionalRoad("Konya", "Adana", 150);
+    g.AddBidirectionalRoad("Adana", "Gaziantep", 180);
+    
+    //             ...   
+    
+    // Display Options
+    g.DisplayGraph();
     g.DisplayRoadMap();
+    
+    //int command;
+    //do{
+    //    //The menu goes here
+    //}while(command !=6);
     return 0;
 }
