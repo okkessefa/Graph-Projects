@@ -19,6 +19,44 @@ Tekirdağ ──70── Edirne
 
 */
 
+/*
+function Dijkstra(start, target):
+    distance[start] = 0
+    for each city != start:
+        distance[city] = ∞
+
+    parent = {}
+    visited = {}
+
+    priority_queue q with (0, start)
+
+    while q is not empty:
+        (current_dist, current_city) = q.pop()
+
+        if current_city == target:
+            break
+
+        if current_city already visited:
+            continue
+
+        visited[current_city] = true
+
+        for neighbor in adjacencyList[current_city]:
+            next_city = neighbor.city
+            edge_weight = neighbor.distance
+
+            new_dist = current_dist + edge_weight
+
+            if new_dist < distance[next_city]:
+                distance[next_city] = new_dist
+                parent[next_city] = current_city
+                q.push((new_dist, next_city))
+
+    reconstruct path using parent map
+    print total distance and city sequence
+
+*/
+
 
 #include <iostream>           // For input/output
 #include <vector>             // For storing adjacency lists and paths
@@ -27,7 +65,7 @@ Tekirdağ ──70── Edirne
 #include <stack>              // For rotation check list
 #include <string>             // For city names (std::string)
 #include <algorithm>          // For std::find, std::reverse (used in BFS path reconstruction)
-
+#include <climits>
 // | Header            | Required?    | Purpose                                                                  |
 // | ----------------- | -----------  | ------------------------------------------------------------------------ |
 // | `<iostream>`      | ✅           | `cin`, `cout`, and user interaction                                      |
@@ -143,92 +181,90 @@ public:
     //    Stack
         
     // Function: BFS(start, target)
-    void BFS(const std::string& start, const std::string& target){
-        // - Find shortest path from start to target using Breadth-First Search
-        // - Print path and total distance
+    void Dijkstra(const std::string& start, const std::string& target) 
+    {
+        // 🔧 Initialize helper data structures
 
-        // Declare:
-        // - parent map to track the previous city for each visited city
-        std::unordered_map<std::string , std::string> parent;
-        // - distance map to accumulate distance from start
+        // Tracks the previous city on the shortest known path (used for path reconstruction)
+        std::unordered_map<std::string, std::string> parent;
+
+        // Stores the minimum known distance from the start city to each city
         std::unordered_map<std::string, int> Totaldistance;
-        // - visited map to mark which cities have been visited
-        std::unordered_map<std::string, bool> visited;
-        // - queue for BFS traversal
-        std::queue<std::string> q;
 
-        // Push start city into the queue
-        q.push(start);
-        // Mark start as visited
-        visited[start] = true;
-        // Set total distance of start to 0
+        // Flags whether the shortest path to a city has already been finalized
+        std::unordered_map<std::string, bool> visited;
+
+        // Min-heap: (total distance from start, city name)
+        using P = std::pair<int, std::string>;
+        std::priority_queue<P, std::vector<P>, std::greater<P>> pq;
+
+        // 🌐 Initialize all cities' distances to ∞ (INT_MAX) to represent "unreachable"
+        for (const auto& pair : adjacencyList) 
+        {
+            Totaldistance[pair.first] = INT_MAX;
+        }
+
+        // 🟢 Distance to the starting city is 0
         Totaldistance[start] = 0;
 
-        // Initialize a flag called found = false
-        bool found = false;
+        // Add the start city to the priority queue with distance 0
+        pq.push({0, start});
 
-        // While queue is not empty:
-        while(!q.empty()){
-            //     - Take the front element (current city) and pop it
-            std::string current = q.front(); q.pop();
-            //     - If current == target:
-            if(current == target){
-                found  = true;
-                break;
-                //         - Set found = true
-                //         - Break the loop
-            }
-            //     - For each neighbor of current city:
-            for(const auto& neighbour : adjacencyList[current]){
-                //         - Extract neighbor city and road distance
+        // 🔁 Main loop: continue while there are cities to process
+        while (!pq.empty()) 
+        {
+            // Extract the city with the smallest known distance
+            auto [dist, current] = pq.top(); pq.pop();
+
+            // Skip if the city was already finalized (processed earlier)
+            if (visited[current]) continue;
+            visited[current] = true;
+
+            // 🔄 Examine all neighboring cities
+            for (const auto& neighbour : adjacencyList[current]) 
+            {
                 std::string nextCity = neighbour.first;
-                int roaddistance = neighbour.second;
+                int edgeweight = neighbour.second;
 
-                //         - If neighbor is not visited:
-                if(!visited[nextCity]){
-                    //             - Mark neighbor as visited
-                    visited[nextCity] = true;
-                    //             - Set parent[neighbor] = current
-                    parent[nextCity] = current;
-                    //             - Set totalDistance[neighbor] = totalDistance[current] + edge distance
-                    Totaldistance[nextCity] = Totaldistance[current] + roaddistance;
-                    //             - Push neighbor to queue
-                    q.push(nextCity);
+                // Calculate total distance to reach nextCity via current
+                int newdistance = Totaldistance[current] + edgeweight;
+
+                // If this new path is better than what we previously knew, update it
+                if (newdistance < Totaldistance[nextCity]) 
+                {
+                    Totaldistance[nextCity] = newdistance;       // update best known distance
+                    parent[nextCity] = current;                 // track how we got to nextCity
+                    pq.push({newdistance, nextCity});           // push updated city to queue
                 }
             }
-            
         }
-        // If not found:
-        if(!found){
-            //     - Print: No path found from start to target
-            std::cout<<"This road map is not from"<< start<< " to " << target << std::endl;
-            //     - Return
+
+        // ❌ If we never reached the target city, report failure
+        if (Totaldistance[target] == INT_MAX) 
+        {
+            std::cout << "❌ No path found from " << start << " to " << target << ".\n";
             return;
         }
-            
-        // Reconstruct path from target to start using parent map:
-        // - Create a vector called path
+
+        // ✅ Reconstruct the path from target to start using the parent map
         std::vector<std::string> path;
-        // - While at != start:
-        for(std::string at = target; at != start; at = parent[at])
+        for (std::string at = target; at != start; at = parent[at]) 
         {
-            //     - Push at into path
             path.push_back(at);
         }
-        // - Push start into path
         path.push_back(start);
-        // - Reverse path to get start → target
-        std::reverse(path.begin(), path.end());
-            
-        std::cout<<"The shortest way from"<< start << " to "<< target << "is that:"<<std::endl;
-        for(size_t i = 0; i < path.size() ; i++){
-            // Print path with arrows (→)
-            std::cout<<path[i];
-            if(i < path.size() - 1) std::cout<<" -> ";
-            // Print total distance from totalDistance[target]
+        std::reverse(path.begin(), path.end());  // Reverse to make path go from start → target
+
+        // 🖨️ Output the result
+        std::cout << "\n🚗 The shortest way from " << start << " to " << target << " is:\n";
+        for (size_t i = 0; i < path.size(); ++i) 
+        {
+            std::cout << path[i];
+            if (i < path.size() - 1) std::cout << " → ";
         }
-        std::cout<<"Total distance is "<< Totaldistance[target]<< "km." << std::endl;
-    }
+        std::cout << "\n🧭 Total distance is " << Totaldistance[target] << " km.\n";
+}
+
 
 
 
@@ -349,7 +385,7 @@ int main() {
                 std::cout<<"City name 2: ";
                 getline(std::cin, city_target);
 
-                g.BFS(city_start, city_target);
+                g.Dijkstra(city_start, city_target);
                 break;
             }
                 //     4. Exit
